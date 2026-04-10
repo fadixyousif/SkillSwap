@@ -1,15 +1,20 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+// index.js - Main entry point for the Express server
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const authRoutes = require('./routes/auth');
-const profileRoutes = require('./routes/profile');
-const postRoutes = require('./routes/post');
-const requestRoutes = require('./routes/request');
-const conversationRoutes = require('./routes/conversation');
+// Import route handlers
+import authRoutes from './routes/auth.js';
+import profileRoutes from './routes/profile.js';
+import postRoutes from './routes/post.js';
+import requestRoutes from './routes/request.js';
+import conversationRoutes from './routes/conversation.js';
 
+// Create Express app
 const app = express();
 
+// enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json());
 

@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // GET /conversations - Get chat list for signed-in user
@@ -21,4 +21,4 @@ router.post('/', (req, res) => {
   res.status(501).json({ message: 'Not implemented yet' });
 });
 
-module.exports = router;
+export default router;

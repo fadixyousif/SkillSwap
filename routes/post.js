@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // POST /posts/create - Create a public post
@@ -16,4 +16,4 @@ router.get('/user/:userId', (req, res) => {
   res.status(501).json({ message: 'Not implemented yet' });
 });
 
-module.exports = router;
+export default router;

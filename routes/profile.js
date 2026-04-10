@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // POST /profiles/create - Create profile after signup/onboarding
@@ -8,11 +8,6 @@ router.post('/create', (req, res) => {
 
 // GET /profiles - Get Discover list
 router.get('/', (req, res) => {
-  res.status(501).json({ message: 'Not implemented yet' });
-});
-
-// GET /profiles/me - Get current user profile
-router.get('/me', (req, res) => {
   res.status(501).json({ message: 'Not implemented yet' });
 });
 
@@ -26,4 +21,4 @@ router.put('/:userId', (req, res) => {
   res.status(501).json({ message: 'Not implemented yet' });
 });
 
-module.exports = router;
+export default router;

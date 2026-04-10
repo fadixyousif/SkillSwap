@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // POST /requests/send - Send swap request
@@ -26,4 +26,4 @@ router.patch('/:requestId/decline', (req, res) => {
   res.status(501).json({ message: 'Not implemented yet' });
 });
 
-module.exports = router;
+export default router;
