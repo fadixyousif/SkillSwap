@@ -1,18 +1,18 @@
 import express from 'express';
 import pool from '../modules/database.js';
 import { hashPassword, generateSalt, generateToken, verifyToken } from '../modules/authentication.js';
+import { validateFields } from '../modules/validation.js';
 
 const router = express.Router();
-
 
 // POST /auth/signup - Register a new user
 router.post('/signup', async (req, res) => {
   // Validate input
   const { email, password, fullName } = req.body;
+  const validationError = validateFields({ email, password, fullName });
 
-  // Basic validation
-  if (!email || !password || !fullName) {
-      return res.status(400).json({ error: "Missing required fields", success: false });
+  if (validationError) {
+    return res.status(400).json({ error: validationError, success: false });
   }
 
   // Additional validation can be added here (e.g., email format, password strength)
@@ -51,7 +51,6 @@ router.post('/signup', async (req, res) => {
     }
     // For other database errors, return a generic error message
     res.status(500).json({ error: "Database error", success: false });
-    console.error("Database error during signup:", err);
   }
 });
 
@@ -59,14 +58,10 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
   // Validate input
   const { email, password } = req.body;
+  const validationError = validateFields({ email, password });
 
-  if (!email || !password) {
-      return res.status(400).json({ error: "Missing email or password", success: false });
-  }
-
-  // Basic validation
-  if (!email || !password) {
-      return res.status(400).json({ error: "Missing email or password", success: false });
+  if (validationError) {
+    return res.status(400).json({ error: validationError, success: false });
   }
 
   // Fetch user from database by email
