@@ -17,9 +17,8 @@ router.post('/complete', verifyToken, async (req, res) => {
     return res.status(400).json({ error: validationError, success: false });
   }
 
-  // Update user profile in database
   try {
-    // Use req.tokenData.userId to identify which profile to update
+    // SQL query to update the user's profile using the userId from the verified token
     await pool.execute(
       'UPDATE users SET headlineRole = ?, program = ?, college = ?, location = ?, bio = ?, updatedAt = CURRENT_TIMESTAMP WHERE userId = ?',
       [headlineRole, program, college, location, bio, req.tokenData.userId]
@@ -50,7 +49,7 @@ router.get('/', async (req, res) => {
       } catch (err) { /* token invalid, proceed as guest */ }
     }
 
-    // Fetch all user profiles, excluding the current user if identified, ordered by creation date
+    // SQL query to fetch all user profiles, excluding the current user if identified, ordered by creation date
     const query = currentUserId 
       ? 'SELECT userId, fullName, headlineRole, program, college, location, bio, profileImageUri FROM users WHERE userId != ? ORDER BY createdAt DESC'
       : 'SELECT userId, fullName, headlineRole, program, college, location, bio, profileImageUri FROM users ORDER BY createdAt DESC';
@@ -71,7 +70,7 @@ router.get('/', async (req, res) => {
 // GET /profiles/:userId - Get one user profile with their skills
 router.get('/:userId', async (req, res) => {
   try {
-    // Fetch user profile by userId, excluding sensitive info, and fetch their skills in a separate query
+    // SQL query to fetch user profile by userId, excluding sensitive info, and fetch their skills in a separate query
     const [userRows] = await pool.execute(
       'SELECT userId, fullName, headlineRole, program, college, location, bio, profileImageUri FROM users WHERE userId = ?',
       [req.params.userId]
@@ -82,7 +81,7 @@ router.get('/:userId', async (req, res) => {
       return res.status(404).json({ error: "User not found", success: false });
     }
 
-    // Fetch skills for the user
+    // SQL query to fetch skills for the specified user
     const [skillRows] = await pool.execute(
       'SELECT skillName, level, type FROM skills WHERE userId = ?',
       [req.params.userId]
@@ -120,7 +119,7 @@ router.put('/:userId', verifyToken, async (req, res) => {
   }
 
   try {
-    // Update user profile in database using req.tokenData.userId to ensure only own profile is updated
+    // SQL query to update user profile in database using req.tokenData.userId to ensure only own profile is updated
     const [result] = await pool.execute(
       'UPDATE users SET fullName = ?, headlineRole = ?, program = ?, college = ?, location = ?, bio = ?, profileImageUri = ?, updatedAt = CURRENT_TIMESTAMP WHERE userId = ?',
       [fullName, headlineRole, program, college, location, bio, profileImageUri, req.tokenData.userId]

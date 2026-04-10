@@ -18,7 +18,7 @@ router.post('/create', verifyToken, async (req, res) => {
 
   // Insert new post into database
   try {
-    // Use req.tokenData.userId to associate post with the authenticated user
+    // SQL query to insert a new post with the authenticated user's ID as the author
     const [result] = await pool.execute(
       'INSERT INTO posts (userId, content, offeredSkill, neededSkill) VALUES (?, ?, ?, ?)',
       [req.tokenData.userId, content, offeredSkill, neededSkill]
@@ -39,9 +39,8 @@ router.post('/create', verifyToken, async (req, res) => {
 
 // GET /posts - Get posts feed
 router.get('/', async (req, res) => {
-  // Fetch all posts with author info, ordered by creation date
   try {
-    // Join posts with users to get author details in one query
+    // SQL query to fetch all posts, including author details, ordered by creation date
     const [rows] = await pool.execute(`
       SELECT p.*, u.fullName as authorName, u.headlineRole as authorRole, u.profileImageUri 
       FROM posts p 
@@ -60,9 +59,8 @@ router.get('/', async (req, res) => {
 
 // GET /posts/user/:userId - Get all posts by one user
 router.get('/user/:userId', async (req, res) => {
-  // Fetch posts for a specific user, ordered by creation date
   try {
-    // Join posts with users to get author details in one query
+    // SQL query to fetch posts for the specified user, including author details
     const [rows] = await pool.execute(
       'SELECT * FROM posts WHERE userId = ? ORDER BY createdAt DESC',
       [req.params.userId]
@@ -79,9 +77,8 @@ router.get('/user/:userId', async (req, res) => {
 
 // DELETE /posts/:postId - Delete a post
 router.delete('/:postId', verifyToken, async (req, res) => {
-  // Delete a post if it belongs to the authenticated user
   try {
-    // Use req.tokenData.userId to ensure users can only delete their own posts
+    // SQL query to delete a post if it belongs to the authenticated user
     const [result] = await pool.execute(
       'DELETE FROM posts WHERE postId = ? AND userId = ?',
       [req.params.postId, req.tokenData.userId]
