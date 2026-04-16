@@ -81,7 +81,24 @@ fun SkillSwapNavGraph(application: SkillSwapApplication) {
             composable(NavRoutes.LOGIN) {
                 LoginScreen(
                     authViewModel = authViewModel,
-                    onLoginSuccess = { hasProfile ->
+                    onLoginSuccess = { hasProfile, token, meUser ->
+                        // Use token directly from callback — NOT from authState
+                        // (authState may not have recomposed yet at this point)
+                        profileViewModel.setAuth(token, application.container.authApiService)
+
+                        // If returning user, load their existing profile into ProfileViewModel
+                        if (hasProfile && meUser != null) {
+                            profileViewModel.loadFromBackend(
+                                fullName = meUser.fullName,
+                                headlineRole = meUser.headlineRole,
+                                program = meUser.program,
+                                college = meUser.college,
+                                location = meUser.location,
+                                bio = meUser.bio,
+                                offeredSkills = emptyList(),
+                                neededSkills = emptyList()
+                            )
+                        }
                         val destination = if (hasProfile) NavRoutes.DISCOVER else NavRoutes.WELCOME
                         navController.navigate(destination) {
                             popUpTo(NavRoutes.LOGIN) { inclusive = true }

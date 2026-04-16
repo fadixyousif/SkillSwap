@@ -44,7 +44,7 @@ import com.example.skillswap.ui.viewmodel.AuthViewModel
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
-    onLoginSuccess: (hasProfile: Boolean) -> Unit,
+    onLoginSuccess: (hasProfile: Boolean, token: String, meUser: com.example.skillswap.data.model.MeUser?) -> Unit,
     onSignupClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
 ) {
@@ -110,7 +110,7 @@ fun LoginScreen(
                             if (email.isBlank() || password.isBlank()) {
                                 localError = "Please fill in all fields."
                             } else {
-                                authViewModel.login(email, password) { hasProfile -> onLoginSuccess(hasProfile) }
+                                authViewModel.login(email, password) { hasProfile, token, meUser -> onLoginSuccess(hasProfile, token, meUser) }
                             }
                         }, modifier = Modifier.fillMaxWidth().height(54.dp))
                     }

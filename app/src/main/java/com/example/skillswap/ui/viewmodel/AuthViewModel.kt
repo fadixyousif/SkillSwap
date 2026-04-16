@@ -3,6 +3,7 @@ package com.example.skillswap.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.skillswap.data.model.LoginRequest
+import com.example.skillswap.data.model.MeUser
 import com.example.skillswap.data.model.SignupRequest
 import com.example.skillswap.data.remote.AuthApiService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,8 @@ data class AuthState(
     val isLoading: Boolean = false,
     val token: String? = null,
     val userId: Int? = null,
+    val hasProfile: Boolean = false,
+    val meUser: MeUser? = null,
     val errorMessage: String? = null
 )
 
@@ -24,32 +27,33 @@ class AuthViewModel(
     private val _authState = MutableStateFlow(AuthState())
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
-    fun login(email: String, password: String, onSuccess: (Boolean) -> Unit) {
+    // onSuccess now passes BOTH hasProfile AND the token directly
+    // so NavGraph doesn't have to read from authState (which may not have recomposed yet)
+    fun login(
+        email: String,
+        password: String,
+        onSuccess: (hasProfile: Boolean, token: String, meUser: MeUser?) -> Unit
+    ) {
         viewModelScope.launch {
             _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
             try {
                 val response = authApiService.login(LoginRequest(email, password))
                 if (response.success && response.token != null) {
-                    val token = response.token
-                    
-                    // Call /auth/me to check for profile
-                    val meResponse = authApiService.getMe("Bearer $token")
-                    
-                    if (meResponse.success && meResponse.user != null) {
-                        val hasProfile = !meResponse.user.headlineRole.isNullOrBlank()
-                        
-                        _authState.value = _authState.value.copy(
-                            isLoading = false,
-                            token = token,
-                            userId = meResponse.user.userId
-                        )
-                        onSuccess(hasProfile)
-                    } else {
-                        _authState.value = _authState.value.copy(
-                            isLoading = false,
-                            errorMessage = "Failed to fetch user profile."
-                        )
-                    }
+                    val meResponse = try {
+                        authApiService.getMe("Bearer ${response.token}")
+                    } catch (e: Exception) { null }
+
+                    val hasProfile = meResponse?.user?.headlineRole?.isNotBlank() == true
+
+                    _authState.value = _authState.value.copy(
+                        isLoading = false,
+                        token = response.token,
+                        userId = response.user?.userId,
+                        hasProfile = hasProfile,
+                        meUser = meResponse?.user
+                    )
+                    // Pass token directly — don't rely on Compose state recomposition
+                    onSuccess(hasProfile, response.token, meResponse?.user)
                 } else {
                     _authState.value = _authState.value.copy(
                         isLoading = false,

@@ -35,6 +35,12 @@ fun ProfileDetailScreen(
     authToken: String = ""
 ) {
     val requestState by requestViewModel.requestState.collectAsState()
+
+    // Clear any previous success/error message when entering this screen
+    // This prevents messages from one user's profile showing on another
+    LaunchedEffect(userId) {
+        requestViewModel.clearMessages()
+    }
     val discoverState = discoverViewModel?.discoverState?.collectAsState()
 
     // Find the real profile from the API data

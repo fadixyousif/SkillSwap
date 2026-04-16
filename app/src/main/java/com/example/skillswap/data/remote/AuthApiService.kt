@@ -4,6 +4,9 @@ import com.example.skillswap.data.model.LoginRequest
 import com.example.skillswap.data.model.LoginResponse
 import com.example.skillswap.data.model.MeResponse
 import com.example.skillswap.data.model.ProfilesResponse
+import com.example.skillswap.data.model.SaveProfileRequest
+import com.example.skillswap.data.model.SaveProfileResponse
+import com.example.skillswap.data.model.SaveSkillsRequest
 import com.example.skillswap.data.model.SignupRequest
 import com.example.skillswap.data.model.SignupResponse
 import retrofit2.http.Body
@@ -24,4 +27,16 @@ interface AuthApiService {
 
     @GET("profiles")
     suspend fun getProfiles(@Header("Authorization") token: String): ProfilesResponse
+
+    @POST("profiles/complete")
+    suspend fun saveProfile(
+        @Header("Authorization") token: String,
+        @Body request: SaveProfileRequest
+    ): SaveProfileResponse
+
+    @POST("profiles/skills")
+    suspend fun saveSkills(
+        @Header("Authorization") token: String,
+        @Body request: SaveSkillsRequest
+    ): SaveProfileResponse
 }

@@ -59,3 +59,28 @@ data class SkillDto(
     val level: String? = null,
     val type: String
 )
+
+// --- Save Profile ---
+data class SaveProfileRequest(
+    val headlineRole: String,
+    val program: String,
+    val college: String,
+    val location: String,
+    val bio: String
+)
+
+data class SaveProfileResponse(
+    val success: Boolean,
+    val message: String? = null,
+    val error: String? = null
+)
+
+// --- Save Skills ---
+data class SkillRequest(
+    val skillName: String,
+    val type: String  // "OFFER" or "NEED"
+)
+
+data class SaveSkillsRequest(
+    val skills: List<SkillRequest>
+)
