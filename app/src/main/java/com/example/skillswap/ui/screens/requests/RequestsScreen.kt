@@ -2,17 +2,7 @@ package com.example.skillswap.ui.screens.requests
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -21,260 +11,186 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.skillswap.ui.theme.SkillSwapBackground
-import com.example.skillswap.ui.theme.SkillSwapBorder
-import com.example.skillswap.ui.theme.SkillSwapPrimary
-import com.example.skillswap.ui.theme.SkillSwapSecondary
-import com.example.skillswap.ui.theme.SkillSwapSurface
-import com.example.skillswap.ui.theme.SkillSwapSurfaceAlt
-import com.example.skillswap.ui.theme.SkillSwapTextSecondary
-
-data class SwapRequestUi(
-    val id: Int,
-    val name: String,
-    val role: String,
-    val message: String,
-    val offeredSkill: String,
-    val neededSkill: String,
-    val status: String
-)
+import com.example.skillswap.ui.theme.*
+import com.example.skillswap.ui.viewmodel.RequestViewModel
 
 @Composable
-fun RequestsScreen() {
-    val requests = remember {
-        listOf(
-            SwapRequestUi(
-                id = 1,
-                name = "Sarah Jenkins",
-                role = "Frontend Developer",
-                message = "Hey, I can help with frontend in exchange for logo design support.",
-                offeredSkill = "HTML/CSS/JavaScript",
-                neededSkill = "Logo Design",
-                status = "Pending"
-            ),
-            SwapRequestUi(
-                id = 2,
-                name = "Leila Chen",
-                role = "Content Creator",
-                message = "I’d love help with a portfolio site and can offer content writing in return.",
-                offeredSkill = "Content Writing",
-                neededSkill = "Portfolio Website",
-                status = "Pending"
-            )
-        )
+fun RequestsScreen(
+    requestViewModel: RequestViewModel,
+    authToken: String
+) {
+    val requestState by requestViewModel.requestState.collectAsState()
+    var selectedTab by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Incoming", "Outgoing")
+
+    LaunchedEffect(authToken) {
+        if (authToken.isNotEmpty()) {
+            requestViewModel.loadIncomingRequests(authToken)
+            requestViewModel.loadOutgoingRequests(authToken)
+        }
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SkillSwapBackground)
-            .padding(horizontal = 20.dp)
+        modifier = Modifier.fillMaxSize().background(SkillSwapBackground).padding(horizontal = 20.dp)
     ) {
         Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Requests",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.ExtraBold
-        )
-
+        Text("Requests", style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.ExtraBold)
         Spacer(modifier = Modifier.height(6.dp))
+        Text("Manage your incoming and outgoing skill swap requests.",
+            style = MaterialTheme.typography.bodyMedium, color = SkillSwapTextSecondary)
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Review incoming skill swap requests and decide what to do next.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = SkillSwapTextSecondary
-        )
+        if (authToken.isEmpty()) {
+            Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp),
+                color = SkillSwapSurfaceAlt, border = BorderStroke(1.dp, SkillSwapBorder)) {
+                Text("Please log in to see your requests.",
+                    modifier = Modifier.padding(20.dp), color = SkillSwapTextSecondary)
+            }
+            return@Column
+        }
 
-        Spacer(modifier = Modifier.height(18.dp))
-
-        if (requests.isEmpty()) {
-            EmptyRequestsState()
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(requests) { request ->
-                    RequestCard(request = request)
-                }
+        // Tab row
+        TabRow(selectedTabIndex = selectedTab,
+            containerColor = SkillSwapSurface,
+            contentColor = SkillSwapPrimary) {
+            tabs.forEachIndexed { index, title ->
+                Tab(selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = { Text(title, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal) }
+                )
             }
         }
-    }
-}
 
-@Composable
-private fun EmptyRequestsState() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = SkillSwapSurfaceAlt,
-        border = BorderStroke(1.dp, SkillSwapBorder)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Text(
-                text = "No swap requests yet",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold
-            )
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "When you connect with someone, your requests will appear here.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = SkillSwapTextSecondary
-            )
-        }
-    }
-}
-
-@Composable
-private fun RequestCard(request: SwapRequestUi) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(containerColor = SkillSwapSurface),
-        border = BorderStroke(1.dp, SkillSwapBorder),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.Top
-            ) {
-                Surface(
-                    modifier = Modifier.size(60.dp),
-                    shape = CircleShape,
-                    color = SkillSwapSecondary.copy(alpha = 0.85f)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = request.name.take(1),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Bold
-                        )
+        when {
+            requestState.isLoading -> {
+                Box(modifier = Modifier.fillMaxWidth().padding(40.dp),
+                    contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = SkillSwapPrimary)
+                }
+            }
+            else -> {
+                if (selectedTab == 0) {
+                    // INCOMING
+                    val incoming = requestState.incomingRequests
+                    if (incoming.isEmpty()) {
+                        EmptyState("No incoming requests yet.",
+                            "When someone sends you a swap request, it'll appear here.")
+                    } else {
+                        LazyColumn(contentPadding = PaddingValues(bottom = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            items(incoming) { req ->
+                                IncomingRequestCard(
+                                    name = req.fromUserName,
+                                    offeredSkill = req.offeredSkill,
+                                    neededSkill = req.requestedSkill,
+                                    message = req.message ?: "",
+                                    status = req.status,
+                                    onAccept = { requestViewModel.acceptRequest(authToken, req.requestId) },
+                                    onDecline = { requestViewModel.declineRequest(authToken, req.requestId) }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // OUTGOING
+                    val outgoing = requestState.outgoingRequests
+                    if (outgoing.isEmpty()) {
+                        EmptyState("No outgoing requests yet.",
+                            "Requests you send to others will appear here.")
+                    } else {
+                        LazyColumn(contentPadding = PaddingValues(bottom = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            items(outgoing) { req ->
+                                OutgoingRequestCard(
+                                    name = req.toUserName,
+                                    offeredSkill = req.offeredSkill,
+                                    neededSkill = req.requestedSkill,
+                                    status = req.status
+                                )
+                            }
+                        }
                     }
                 }
-
-                Spacer(modifier = Modifier.width(14.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = request.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = request.role,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = SkillSwapPrimary
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = SkillSwapPrimary.copy(alpha = 0.14f),
-                    border = BorderStroke(1.dp, SkillSwapPrimary.copy(alpha = 0.22f))
-                ) {
-                    Text(
-                        text = request.status,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = SkillSwapPrimary,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(16.dp))
+@Composable
+private fun EmptyState(title: String, subtitle: String) {
+    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp),
+        color = SkillSwapSurfaceAlt, border = BorderStroke(1.dp, SkillSwapBorder)) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = SkillSwapTextSecondary)
+        }
+    }
+}
 
-            Text(
-                text = request.message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            RequestSkillLine(
-                label = "Offers",
-                value = request.offeredSkill
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            RequestSkillLine(
-                label = "Needs",
-                value = request.neededSkill
-            )
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(18.dp),
-                    border = BorderStroke(1.dp, SkillSwapBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Close,
-                        contentDescription = "Decline"
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Decline")
+@Composable
+private fun IncomingRequestCard(
+    name: String, offeredSkill: String, neededSkill: String,
+    message: String, status: String,
+    onAccept: () -> Unit, onDecline: () -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = SkillSwapSurface),
+        border = BorderStroke(1.dp, SkillSwapBorder),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(modifier = Modifier.size(52.dp), shape = CircleShape,
+                    color = SkillSwapSecondary.copy(alpha = 0.85f)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(name.take(1), style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                    }
                 }
-
-                Button(
-                    onClick = { },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SkillSwapPrimary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Check,
-                        contentDescription = "Accept"
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Accept")
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(name, fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface)
+                    Text("Wants to swap with you", style = MaterialTheme.typography.bodySmall,
+                        color = SkillSwapTextSecondary)
+                }
+                StatusBadge(status)
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+            SkillRow("Offers", offeredSkill)
+            Spacer(modifier = Modifier.height(6.dp))
+            SkillRow("Needs", neededSkill)
+            if (message.isNotBlank()) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("\"$message\"", style = MaterialTheme.typography.bodySmall,
+                    color = SkillSwapTextSecondary)
+            }
+            if (status.equals("pending", ignoreCase = true)) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onDecline, modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, SkillSwapBorder)) {
+                        Icon(Icons.Outlined.Close, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Decline")
+                    }
+                    Button(onClick = onAccept, modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = SkillSwapPrimary)) {
+                        Icon(Icons.Outlined.Check, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Accept")
+                    }
                 }
             }
         }
@@ -282,32 +198,62 @@ private fun RequestCard(request: SwapRequestUi) {
 }
 
 @Composable
-private fun RequestSkillLine(
-    label: String,
-    value: String
+private fun OutgoingRequestCard(
+    name: String, offeredSkill: String, neededSkill: String, status: String
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.SwapHoriz,
-            contentDescription = null,
-            tint = SkillSwapSecondary
-        )
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = SkillSwapSurface),
+        border = BorderStroke(1.dp, SkillSwapBorder),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(modifier = Modifier.size(52.dp), shape = CircleShape,
+                    color = SkillSwapPrimary.copy(alpha = 0.8f)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(name.take(1), style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(name, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text("You sent a request", style = MaterialTheme.typography.bodySmall,
+                        color = SkillSwapTextSecondary)
+                }
+                StatusBadge(status)
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+            SkillRow("You offer", offeredSkill)
+            Spacer(modifier = Modifier.height(6.dp))
+            SkillRow("You need", neededSkill)
+        }
+    }
+}
 
-        Spacer(modifier = Modifier.width(8.dp))
+@Composable
+private fun StatusBadge(status: String) {
+    val color = when (status.lowercase()) {
+        "accepted" -> SkillSwapPrimary
+        "declined" -> MaterialTheme.colorScheme.error
+        else -> SkillSwapSecondary
+    }
+    Surface(shape = RoundedCornerShape(50.dp), color = color.copy(alpha = 0.14f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.3f))) {
+        Text(status.replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.labelMedium, color = color,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
+    }
+}
 
-        Text(
-            text = "$label: ",
-            style = MaterialTheme.typography.bodyMedium,
-            color = SkillSwapSecondary,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+@Composable
+private fun SkillRow(label: String, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Outlined.SwapHoriz, contentDescription = null,
+            tint = SkillSwapSecondary, modifier = Modifier.size(16.dp))
+        Spacer(modifier = Modifier.width(6.dp))
+        Text("$label: ", style = MaterialTheme.typography.bodySmall,
+            color = SkillSwapSecondary, fontWeight = FontWeight.Bold)
+        Text(value, style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface)
     }
 }
