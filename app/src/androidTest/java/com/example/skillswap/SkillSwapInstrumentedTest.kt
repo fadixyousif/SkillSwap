@@ -62,7 +62,7 @@ class SkillSwapInstrumentedTest {
             SkillSwapTheme {
                 LoginScreen(
                     authViewModel = FakeAuthViewModelForTest(),
-                    onLoginSuccess = {},
+                    onLoginSuccess = { _, _, _ -> },
                     onSignupClick = {},
                     onForgotPasswordClick = {}
                 )
@@ -77,7 +77,7 @@ class SkillSwapInstrumentedTest {
             SkillSwapTheme {
                 LoginScreen(
                     authViewModel = FakeAuthViewModelForTest(),
-                    onLoginSuccess = {},
+                    onLoginSuccess = { _, _, _ -> },
                     onSignupClick = {},
                     onForgotPasswordClick = {}
                 )
@@ -92,7 +92,7 @@ class SkillSwapInstrumentedTest {
             SkillSwapTheme {
                 LoginScreen(
                     authViewModel = FakeAuthViewModelForTest(),
-                    onLoginSuccess = {},
+                    onLoginSuccess = { _, _, _ -> },
                     onSignupClick = {},
                     onForgotPasswordClick = {}
                 )
@@ -107,7 +107,7 @@ class SkillSwapInstrumentedTest {
             SkillSwapTheme {
                 LoginScreen(
                     authViewModel = FakeAuthViewModelForTest(),
-                    onLoginSuccess = {},
+                    onLoginSuccess = { _, _, _ -> },
                     onSignupClick = {},
                     onForgotPasswordClick = {}
                 )
@@ -123,7 +123,7 @@ class SkillSwapInstrumentedTest {
             SkillSwapTheme {
                 LoginScreen(
                     authViewModel = FakeAuthViewModelForTest(),
-                    onLoginSuccess = {},
+                    onLoginSuccess = { _, _, _ -> },
                     onSignupClick = { clicked = true },
                     onForgotPasswordClick = {}
                 )
@@ -139,13 +139,14 @@ class SkillSwapInstrumentedTest {
             SkillSwapTheme {
                 LoginScreen(
                     authViewModel = FakeAuthViewModelForTest(),
-                    onLoginSuccess = {},
+                    onLoginSuccess = { _, _, _ -> },
                     onSignupClick = {},
                     onForgotPasswordClick = {}
                 )
             }
         }
-        composeTestRule.onNodeWithText("Enter your email").performTextInput("test@test.com")
+        // Changed "Enter your email" to "Email" to match the label
+        composeTestRule.onNodeWithText("Email").performTextInput("test@test.com")
         composeTestRule.onNodeWithText("test@test.com").assertIsDisplayed()
     }
 
@@ -155,7 +156,7 @@ class SkillSwapInstrumentedTest {
             SkillSwapTheme {
                 LoginScreen(
                     authViewModel = FakeAuthViewModelForTest(),
-                    onLoginSuccess = {},
+                    onLoginSuccess = { _, _, _ -> },
                     onSignupClick = {},
                     onForgotPasswordClick = {}
                 )

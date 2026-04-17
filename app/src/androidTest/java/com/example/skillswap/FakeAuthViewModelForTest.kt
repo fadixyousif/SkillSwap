@@ -4,6 +4,9 @@ import com.example.skillswap.data.model.LoginRequest
 import com.example.skillswap.data.model.LoginResponse
 import com.example.skillswap.data.model.MeResponse
 import com.example.skillswap.data.model.ProfilesResponse
+import com.example.skillswap.data.model.SaveProfileRequest
+import com.example.skillswap.data.model.SaveProfileResponse
+import com.example.skillswap.data.model.SaveSkillsRequest
 import com.example.skillswap.data.model.SignupRequest
 import com.example.skillswap.data.model.SignupResponse
 import com.example.skillswap.data.remote.AuthApiService
@@ -25,6 +28,18 @@ class FakeAuthApiService : AuthApiService {
 
     override suspend fun getProfiles(token: String): ProfilesResponse =
         ProfilesResponse(success = true, profiles = emptyList())
+
+    override suspend fun saveProfile(
+        token: String,
+        request: SaveProfileRequest
+    ): SaveProfileResponse =
+        SaveProfileResponse(success = false, error = "Test mode")
+
+    override suspend fun saveSkills(
+        token: String,
+        request: SaveSkillsRequest
+    ): SaveProfileResponse =
+        SaveProfileResponse(success = false, error = "Test mode")
 }
 
 /**
