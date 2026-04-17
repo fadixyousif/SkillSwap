@@ -30,6 +30,66 @@ router.post('/complete', verifyToken, async (req, res) => {
   }
 });
 
+// POST /profiles/skills - Save skills for logged in user
+router.post('/skills', verifyToken, async (req, res) => {
+  // Save skills for the authenticated user
+  const { skills } = req.body;
+
+  if (!skills || !Array.isArray(skills) || skills.length === 0) {
+    return res.status(400).json({ error: "Skills array is required", success: false });
+  }
+  try {
+    // Validate skill objects
+    for (const skill of skills) {
+      if (!skill || typeof skill.skillName !== 'string' || skill.skillName.trim() === '') {
+        return res.status(400).json({ error: "Each skill must have a non-empty skillName", success: false });
+      }
+    }
+
+    // Use a transaction: delete existing skills and insert new ones atomically
+    const connection = await pool.getConnection();
+    try {
+      // Start transaction
+      await connection.beginTransaction();
+      // Delete existing skills for the user
+      await connection.execute('DELETE FROM skills WHERE userId = ?', [req.tokenData.userId]);
+
+      // Insert new skills
+      const insertQuery = 'INSERT INTO skills (userId, skillName, level, type) VALUES (?, ?, ?, ?)';
+      
+      // Loop through skills and insert each one, handling optional fields
+      for (const skill of skills) {
+        // Trim skillName and validate level and type
+        const skillName = skill.skillName.trim();
+        const level = (skill.level === undefined || skill.level === null) ? null : Number(skill.level);
+        const type = (typeof skill.type === 'string' && skill.type.trim() !== '') ? skill.type.trim() : null;
+        // Insert skill into database
+        await connection.execute(insertQuery, [req.tokenData.userId, skillName, level, type]);
+      }
+
+      // Commit transaction
+      await connection.commit();
+      // Return success message
+      res.status(200).json({ success: true, message: 'Skills saved successfully' });
+    // Rollback transaction on error
+    } catch (err) {
+      // Rollback transaction on error
+      await connection.rollback();
+      // Log the error for debugging
+      console.error("Skills save error:", err);
+      res.status(500).json({ error: "Database error", success: false });
+    } finally {
+      // Release the connection back to the pool
+      connection.release();
+    }
+  // catch any unexpected errors and log them for debugging
+  } catch (err) {
+    // Log the error for debugging
+    console.error("Skills save outer error:", err);
+    res.status(500).json({ error: "Database error", success: false });
+  }
+});
+
 // GET /profiles — returns all users WITH their skills included
 router.get('/', async (req, res) => {
   try {
@@ -56,7 +116,7 @@ router.get('/', async (req, res) => {
     // Attach skills to each profile
     const profiles = rows.map(user => ({
       ...user,
-      skills: allSkills.filter(s => s.userId === user.userId)
+      skills: allSkills.filter(s => s.userId == user.userId)
     }));
 
     // Return profiles with skills
