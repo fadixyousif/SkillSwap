@@ -55,7 +55,7 @@ class PostsViewModel(
     ) {
         viewModelScope.launch {
             try {
-                repository.createPost(
+                val newPost = repository.createPost(
                     token = token,
                     request = CreatePostRequest(
                         content = content,
@@ -63,8 +63,14 @@ class PostsViewModel(
                         neededSkill = neededSkill
                     )
                 )
+                _uiState.value = _uiState.value.copy(
+                    posts = listOf(newPost) + _uiState.value.posts
+                )
+                // Also reload from backend to ensure consistency
                 loadPosts()
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                // If createPost returns nothing or fails parsing but creates the post, we still reload
+                loadPosts()
             }
         }
     }
